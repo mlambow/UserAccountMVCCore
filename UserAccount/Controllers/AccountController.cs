@@ -78,9 +78,33 @@ namespace UserAccount.Controllers
             return View();
         }
 
-        public IActionResult ChangePassword()
+        [HttpPost]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
         {
-            return View();
+            if (ModelState.IsValid)
+            {
+                var user = await userManager.FindByNameAsync(model.Email);
+
+                if (user != null)
+                {
+                    ModelState.AddModelError("", "Something went wrong");
+                    return View(model);
+                }
+                else
+                {
+                    return RedirectToAction("ChangePassword", "Account", new { username = user?.UserName });
+                }
+            }
+            return View(model);
+        }
+
+        public IActionResult ChangePassword(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("VerifyEmail", "Account");
+            }
+            return View(new ChangePasswordViewModel { Email = username });
         }
     }
 }
